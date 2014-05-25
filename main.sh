@@ -60,9 +60,9 @@ do
 	startBhf=$(grep -Pzio '<div class="resultDep">\n(.*?)\n</div>' $tmpFile | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | head -n $i | tail -n 1);
 	zielBhf=$(grep -Pzio '<td class="station stationDest pointer".*?>\n(.*?)\n</td>' $tmpFile | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | head -n $i | tail -n 1);
 	
-	duration=$(grep -Pzio '<td class="duration lastrow".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '(?<=>)(?<=\n)?(.*?)(?=\n?<)' | head -n $i | tail -n 1);
+	duration=$(grep -Pzio '<td class="duration lastrow".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '(?<=(>|\n))(.*?)(?=(\n|<))' | head -n $i | tail -n 1);
 	
-	provider=$(grep -Pzio '<td class="products lastrow".*?>(.*?)</td>' $tmpFile | grep -Pzio '(?<=>)(.*?)(?=<)' | head -n $i | tail -n 1);
+	provider=$(grep -Pzio '<td class="products lastrow".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '(?<=(>|\n))(.*?)(?=(\n|<))' | head -n $i | tail -n 1);
 	
 	
 	timeAb=$(grep -Pzio '<td class="time".*?>(.*?)</td>' $tmpFile | grep -Pzio '(?<=>)(.*?)(?=(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n $timeGet | tail -n 1);
@@ -85,30 +85,6 @@ do
 	echo "$startBhf $zielBhf     $timeAb    $timeAn   $duration  $provider";
 	
 done
-
-#startBhf1=$(grep -Pzio '<div class="resultDep">\n(.*?)\n</div>' $tmpFile | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | head -n 1);
-#startBhf2=$(grep -Pzio '<div class="resultDep">\n(.*?)\n</div>' $tmpFile | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | head -n 2 | tail -n 1);
-#startBhf3=$(grep -Pzio '<div class="resultDep">\n(.*?)\n</div>' $tmpFile | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | head -n 3 | tail -n 1);
-
-#zielBhf1=$(grep -Pzio '<td class="station stationDest pointer".*?>\n(.*?)\n</td>' $tmpFile | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | head -n 1);
-#zielBhf2=$(grep -Pzio '<td class="station stationDest pointer".*?>\n(.*?)\n</td>' $tmpFile | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | head -n 2 | tail -n 1);
-#zielBhf3=$(grep -Pzio '<td class="station stationDest pointer".*?>\n(.*?)\n</td>' $tmpFile | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | head -n 3 | tail -n 1);
-
-#timeAb1=$(grep -Pzio '<td class="time".*?>(.*?)</td>' $tmpFile | grep -Pzio '(?<=>)(.*?)(?=(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n 2 | tail -n 1);
-#timeAn1=$(grep -Pzio '<td class="time".*?>(.*?)</td>' $tmpFile | grep -Pzio '(?<=>)(.*?)(?=(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n 3 | tail -n 1);
-#timeAb2=$(grep -Pzio '<td class="time".*?>(.*?)</td>' $tmpFile | grep -Pzio '(?<=>)(.*?)(?=(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n 4 | tail -n 1);
-#timeAn2=$(grep -Pzio '<td class="time".*?>(.*?)</td>' $tmpFile | grep -Pzio '(?<=>)(.*?)(?=(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n 5 | tail -n 1);
-#timeAb3=$(grep -Pzio '<td class="time".*?>(.*?)</td>' $tmpFile | grep -Pzio '(?<=>)(.*?)(?=(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n 6 | tail -n 1);
-#timeAn3=$(grep -Pzio '<td class="time".*?>(.*?)</td>' $tmpFile | grep -Pzio '(?<=>)(.*?)(?=(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n 7 | tail -n 1);
-###########AUSGABE############
-#echo "$zielBhf1";
-#echo "Startbahnhof                      |Zielbahnhof                    |Abfahrtszeit |Ankunftszeit |Dauer  |Provider";
-#echo "----------------------------------|-------------------------------|-------------|-------------|-------|----------";
-#echo "$startBhf1 $zielBhf1     $timeAb1    $timeAn1";
-#echo "$startBhf2 $zielBhf2     $timeAb2    $timeAn2";
-#echo "$startBhf3 $zielBhf3     $timeAb3    $timeAn3";
-
-echo "Done.";
 
 echo "This script is under construction";
 
