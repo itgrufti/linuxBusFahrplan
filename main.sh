@@ -37,11 +37,6 @@ if [ -z "$time" ]
 then
 	time=$(date +%H:%M);
 fi
-echo "DEBUG"
-echo $departure;
-echo $arrival;
-echo "END_DEBUG"
-
 
 currentDate=$(date +%a%%2C+%d.%m.%g | sed s/Tue/Di/ | sed s/Wed/Mi/ | sed s/Th/Do/ | sed s/Sat/Sa/ | sed s/Su/So/ | sed s/Mon/Mo/);
 
@@ -53,8 +48,8 @@ tmpFile="/tmp/fpl.html";
 wget -O $tmpFile "$url" 2> /dev/null;
 anzahlDurchlaeufe=3;
 timeGet=2;
-echo "Startbahnhof                      |Zielbahnhof                    |Abfahrtszeit |Ankunftszeit |Dauer  |Provider";
-echo "----------------------------------|-------------------------------|-------------|-------------|-------|----------";
+printf "%-40s %-40s %-15s %-15s %-8s %-20s \n" "Startbahnhof" "Zielbahnhof" "Abfahrtszeit" "Ankunftszeit" "Dauer" "Verkehrsmittel";
+echo -e "-----------------------------------------------------------------------------------------------------------------------------------------";
 for (( i=1; i<=$anzahlDurchlaeufe; i++ ))
 do
 	startBhf=$(grep -Pzio '<div class="resultDep">\n(.*?)\n</div>' $tmpFile | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | head -n $i | tail -n 1);
@@ -83,10 +78,11 @@ do
 					
 	fi
 	let timeGet=$timeGet+1;
-	echo "$startBhf $zielBhf     $timeAb    $timeAn   $duration  $provider";
+	printf "%-40s %-40s %-15s %-15s %-8s %-20s" "$startBhf" "$zielBhf" $timeAb $timeAn $duration $provider;
+	echo "";
 	
 done
 
-echo "This script is under construction";
+
 
 
