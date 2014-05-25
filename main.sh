@@ -65,20 +65,20 @@ do
 	provider=$(grep -Pzio '<td class="products lastrow".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '(?<=(>|\n))(.*?)(?=(\n|<))' | head -n $i | tail -n 1);
 	
 	
-	timeAb=$(grep -Pzio '<td class="time".*?>(.*?)</td>' $tmpFile | grep -Pzio '(?<=>)(.*?)(?=(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n $timeGet | tail -n 1);
+	timeAb=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '(?<=(>|\n))(.*?)(?=\n?(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n $timeGet | tail -n 1);
 	if ([ ${timeAb:0:1} = "+" ] || [ ${timeAb:0:1} = "-" ])
 	then		
 
 			let	timeGet=$timeGet+1;	
-			timeAb=$(grep -Pzio '<td class="time".*?>(.*?)</td>' $tmpFile | grep -Pzio '(?<=>)(.*?)(?=(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n $timeGet | tail -n 1);
+	timeAb=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '(?<=(>|\n))(.*?)(?=\n?(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n $timeGet | tail -n 1);
 	fi
 	let timeGet=$timeGet+1;
-	timeAn=$(grep -Pzio '<td class="time".*?>(.*?)</td>' $tmpFile | grep -Pzio '(?<=>)(.*?)(?=(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n $timeGet | tail -n 1);
+	timeAn=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '(?<=(>|\n))(.*?)(?=\n?(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n $timeGet | tail -n 1);
 	
 	if ([ ${timeAn:0:1} = "+" ] || [ ${timeAn:0:1} = "-" ])
 	then
 			let	timeGet=$timeGet+1;
-			timeAn=$(grep -Pzio '<td class="time".*?>(.*?)</td>' $tmpFile | grep -Pzio '(?<=>)(.*?)(?=(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n $timeGet | tail -n 1);
+	timeAn=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '(?<=(>|\n))(.*?)(?=\n?(\&nbsp\;)?<[s\/])(?<!<\/s)' | head -n $timeGet | tail -n 1);
 					
 	fi
 	let timeGet=$timeGet+1;
