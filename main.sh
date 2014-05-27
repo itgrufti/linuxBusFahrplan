@@ -30,8 +30,7 @@ function printHelpMessage(){
 # Werte vorbelegen, um zu testen, ob der Benutzer etwas eingeben hat
 departure="nil";
 arrival="nil";
-favorit="nein";
-
+favorit="false";
 # Benutzereingaben abfragen
 while getopts hs:z:t:fr input
 do
@@ -51,11 +50,13 @@ do
 		t)	time=$OPTARG;;
 		
 		# Benutzer will die Eingabe als favorit speichern
-		f)	favorit="ja";;
+		f)	favorit="true";;
 		
 		# Favorit resetten
-		r)	echo "Ihre Favorit-Suche wurde gelöscht.";
-			rm "bfp.fav";;
+		r)	rm "bfp.fav" 2> /dev/null \
+			    && echo -e "Ihr Such-Favorit wurde gelöscht.\n" \
+			    || echo -e "Ihr Such-Favorit war bereits gelöscht.\n" ;
+			exit;;
 		
 		# sonst Hilfenachricht anzeigen und exit
 		\?) 	printHelpMessage;
@@ -90,7 +91,7 @@ then
     fi
 fi
 
-if [ "$favorit" = "ja" ]
+if [ "$favorit" = "true" ]
 then
     echo $departure > "bfp.fav";
     echo $arrival >> "bfp.fav";
