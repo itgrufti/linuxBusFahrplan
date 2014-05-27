@@ -1,5 +1,9 @@
 #! /bin/bash
 
+# Busfahrplan-Shell-Script von Wolfram Reinke und Nils Rohde
+# Emails:	WolframReinke@web.de
+#		nils.rohde@core-control.de 
+
 # Diese Funktion schreibt die Hilfenachricht auf die Ausgabe
 function printHelpMessage(){
 	echo "";
@@ -122,7 +126,7 @@ echo -e "-----------------------------------------------------------------------
 anzahlDurchlaeufe=3;	# Anzahl der Reisemöglichkeiten (die Deutsche Bahn Seite enthält immer 3 Reisemöglichkeiten)
 timeGet=1;		# Die DB-Seite speichert An- und Ab-Zeit beide unter einem <td class="time"> Tag, daher muss hier
 			# extra mitgezählt werden.
-			
+		
 # Tabelle laden und ausgeben
 for (( i=1; i<=$anzahlDurchlaeufe; i++ ))
 do
@@ -134,6 +138,7 @@ do
 	
 	# Die Abfahrtszeit greppen
 	timeAb=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?.*?</td>' $tmpFile | grep -Pzio '\d{1,2}\:\d{1,2}' | head -n $timeGet | tail -n 1);
+	
 	# Auf der DB-Seite werden auch die Verspätungen angezeigt. Diese fangen mit + oder - an und
 	# werden hier ausgefiltert
 	if ([ ${timeAb:0:1} = "+" ] || [ ${timeAb:0:1} = "-" ])
@@ -147,8 +152,10 @@ do
 	
 	# Zähler hochzählen für die Ankunftszeit
 	let timeGet=$timeGet+1;
+	
 	# Die Ankunftszeit greppen
 	timeAn=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?.*?</td>' $tmpFile | grep -Pzio '\d{1,2}\:\d{1,2}' | head -n $timeGet | tail -n 1);
+	
 	# Auf der DB-Seite werden auch die Verspätungen angezeigt. Diese fangen mit + oder - an und
 	# werden hier ausgefiltert
 	if ([ ${timeAn:0:1} = "+" ] || [ ${timeAn:0:1} = "-" ])
