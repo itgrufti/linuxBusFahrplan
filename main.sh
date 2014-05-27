@@ -8,9 +8,12 @@ function printHelpMessage(){
 	echo -e "\tbfp.sh -s <Starthaltestelle> -z <Zielhaltestelle> [-t <Abfahrtszeit>] [-f] [-r]";
 	echo "";
 	echo "Parameter:";
-	echo -e "\t-s\tDie Starthaltestelle der Suche.";
-	echo -e "\t-z\tDie Zielhaltestelle der Suche.";
+	echo -e "\t-s\tDie Starthaltestelle der Suche. Bitte geben Sie die Starthaltestelle in";
+	echo -e "\t  \tAnführungszeichen an.";
+	echo -e "\t-z\tDie Zielhaltestelle der Suche. Bitte geben Sie die Zielhaltestelle in";
+	echo -e "\t  \tAnführungszeichen an.";
 	echo -e "\t-t\tDie Abfahrtszeit. Wenn keine Zeit angegeben wird, wird die aktuelle Zeit verwendet.";
+	echo -e "\t  \tFormat: hh:mm.";
 	echo -e "\t-h\tZeigt diese Hilfenachricht.";
 	echo -e "\t-f\tDie Werte für <Starthaltestelle> und <Zielhaltestelle> werden als Favorit gespeichert.";
 	echo -e "\t  \tWenn bei einer späteren Suche diese Parameter wegelassen werden, werden die Favorit-";
@@ -98,6 +101,11 @@ fi
 
 # aktuelles Datum verwenden. 
 currentDate=$(date +%a%%2C+%d.%m.%g | sed s/Tue/Di/ | sed s/Wed/Mi/ | sed s/Th/Do/ | sed s/Sat/Sa/ | sed s/Su/So/ | sed s/Mon/Mo/);
+
+# URL-Encoding auf die Eingaben anwenden, um Sonderzeichen wie Umlaute zu erlauben.
+departure=$(echo -n "$departure" | perl -pe 's/([^-_.~A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg');
+arrival=$(echo -n "$arrival" | perl -pe 's/([^-_.~A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg');
+time=$(echo -n "$time" | perl -pe 's/([^-_.~A-Za-z0-9])/sprintf("%%%02X", ord($1))/seg');
 
 # URL konstruieren
 url="http://reiseauskunft.bahn.de/bin/query.exe/dn?revia=yes&existOptimizePrice=1&country=DEU&dbkanal_007=L01_S01_D001_KIN0001_qf-bahn_LZ003&ignoreTypeCheck=yes&S=$departure&REQ0JourneyStopsSID=&REQ0JourneyStopsS0A=7&Z=$arrival&REQ0JourneyStopsZID=&REQ0JourneyStopsZ0A=7&trip-type=single&date=$currentDate&time=$time&timesel=depart&returnTimesel=depart&optimize=0&travelProfile=-1&adult-number=1&children-number=0&infant-number=0&tariffTravellerType.1=E&tariffTravellerReductionClass.1=0&tariffTravellerAge.1=&qf-trav-bday-1=&tariffTravellerReductionClass.2=0&tariffTravellerReductionClass.3=0&tariffTravellerReductionClass.4=0&tariffTravellerReductionClass.5=0&tariffClass=2&start=1&qf.bahn.button.suchen="
