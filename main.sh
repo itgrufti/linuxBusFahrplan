@@ -119,9 +119,8 @@ wget -O $tmpFile "$url" 2> /dev/null;	# Seite von url herunterladen
 printf "%-40s %-40s %-15s %-15s %-8s %-20s \n" "Startbahnhof" "Zielbahnhof" "Abfahrtszeit" "Ankunftszeit" "Dauer" "Verkehrsmittel";
 echo -e "-----------------------------------------------------------------------------------------------------------------------------------------";
 
-
 anzahlDurchlaeufe=3;	# Anzahl der Reisemöglichkeiten (die Deutsche Bahn Seite enthält immer 3 Reisemöglichkeiten)
-timeGet=2;		# Die DB-Seite speichert An- und Ab-Zeit beide unter einem <td class="time"> Tag, daher muss hier
+timeGet=1;		# Die DB-Seite speichert An- und Ab-Zeit beide unter einem <td class="time"> Tag, daher muss hier
 			# extra mitgezählt werden.
 			
 # Tabelle laden und ausgeben
@@ -134,28 +133,29 @@ do
 	provider=$(grep -Pzio '<td class="products lastrow".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '(?<=(>|\n))(.*?)(?=(\n|<))' | head -n $i | tail -n 1);
 	
 	# Die Abfahrtszeit greppen
-	timeAb=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '\d{1,2}\:\d{1,2}' | head -n $timeGet | tail -n 1);
+	timeAb=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?.*?</td>' $tmpFile | grep -Pzio '\d{1,2}\:\d{1,2}' | head -n $timeGet | tail -n 1);
 	# Auf der DB-Seite werden auch die Verspätungen angezeigt. Diese fangen mit + oder - an und
 	# werden hier ausgefiltert
 	if ([ ${timeAb:0:1} = "+" ] || [ ${timeAb:0:1} = "-" ])
-	then		
+	then	
+	
 	  # Zeit neu laden, da sonst die Verspätungen statt der Zeit ausgegeben würde. Der nächste Treffer von grep ist
 	  # garantiert keine Verspätungsangabe mehr, die kommen immer abwechselnd
 	  let	timeGet=$timeGet+1;	
-	  timeAb=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '\d{1,2}\:\d{1,2}' | head -n $timeGet | tail -n 1);
+	  timeAb=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?.*?</td>' $tmpFile | grep -Pzio '\d{1,2}\:\d{1,2}' | head -n $timeGet | tail -n 1);
 	fi
 	
 	# Zähler hochzählen für die Ankunftszeit
 	let timeGet=$timeGet+1;
 	# Die Ankunftszeit greppen
-	timeAn=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '\d{1,2}\:\d{1,2}' | head -n $timeGet | tail -n 1);
+	timeAn=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?.*?</td>' $tmpFile | grep -Pzio '\d{1,2}\:\d{1,2}' | head -n $timeGet | tail -n 1);
 	# Auf der DB-Seite werden auch die Verspätungen angezeigt. Diese fangen mit + oder - an und
 	# werden hier ausgefiltert
 	if ([ ${timeAn:0:1} = "+" ] || [ ${timeAn:0:1} = "-" ])
 	then
 	  # Und wieder die Zeit neu laden.
 	  let	timeGet=$timeGet+1;
-	  timeAn=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '\d{1,2}\:\d{1,2}' | head -n $timeGet | tail -n 1);				
+	  timeAn=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?.*?</td>' $tmpFile | grep -Pzio '\d{1,2}\:\d{1,2}' | head -n $timeGet | tail -n 1);				
 	fi
 	
 	# Zähler für den nächsten Schleifendurchlauf hochzählen
