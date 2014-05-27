@@ -9,7 +9,7 @@ function printHelpMessage(){
 	echo "";
 	echo "Busfahrplan-Script von Wolfram Reinke und Nils Rohde";
 	echo "Benutzung:";
-	echo -e "\tbfp.sh -s <Starthaltestelle> -z <Zielhaltestelle> [-t <Abfahrtszeit>] [-f] [-r]";
+	echo -e "\tbfp.sh -s <Starthaltestelle> -z <Zielhaltestelle> [-t <Abfahrtszeit>] [-f] [-r] [-v]";
 	echo "";
 	echo "Parameter:";
 	echo -e "\t-s\tDie Starthaltestelle der Suche. Bitte geben Sie die Starthaltestelle in";
@@ -24,15 +24,22 @@ function printHelpMessage(){
 	echo -e "\t  \tParameter verwendet."
 	echo -e "\t-r\tLöscht die Favorit-Parameter, sodass beim Start wieder <Starthaltestelle> und";
 	echo -e "\t  \t<Zielhaltestelle> angegeben werden müssen.";
+	echo -e "\t-v\tUnterdrückt Status-Ausgaben auf die Standardausgabe. So können die Busdaten leichter";
+	echo -e "\t  \tin eine Datei umgeleitet werden.";
 	echo "";
 }
+
+# Favoriten-Datei
+favorites="bfp.fav";
 
 # Werte vorbelegen, um zu testen, ob der Benutzer etwas eingeben hat
 departure="nil";
 arrival="nil";
 favorit="false";
+verbose="false";
+
 # Benutzereingaben abfragen
-while getopts hs:z:t:fr input
+while getopts hs:z:t:frv input
 do
 	case $input in
 		
@@ -53,10 +60,13 @@ do
 		f)	favorit="true";;
 		
 		# Favorit resetten
-		r)	rm "bfp.fav" 2> /dev/null \
+		r)	rm "$favorites" 2> /dev/null \
 			    && echo -e "Ihr Such-Favorit wurde gelöscht.\n" \
 			    || echo -e "Ihr Such-Favorit war bereits gelöscht.\n" ;
 			exit;;
+		
+		# Ausgaben auf die Standardausgabe sollen unterdrückt werden
+		v)	verbose="true";;
 		
 		# sonst Hilfenachricht anzeigen und exit
 		\?) 	printHelpMessage;
@@ -65,27 +75,34 @@ do
 	esac
 done
 
-# Wenn der User nichts eingegeben hat, dann Hilfenachricht anzeigen und abbrechen
+# Hat der Benutzer Start und Ziel angegeben?
 if ([ "$departure" = "nil" ] || [ "$arrival" = "nil" ])
 then
-    if [ -e "bfp.fav" ] 
+    # Wenn nicht, dann wird in den Favoriten nach den benötigten Daten geschaut.
+    if [ -e "$favorites" ] 
     then
-	departure=$(cat "bfp.fav" | head -n 1);
-	arrival=$(cat "bfp.fav" | head -n 2 | tail -n 1);
+	# Wenn beim laden der Favoriten etwas daneben geht, wird die Datei gelöscht
+	# und der Benutzer über den Fehler informiert.
+	departure=$(cat "$favorites" | head -n 1) \
+	      || { echo "Ihr Such-Favorit konnte nicht aus $favorites geladen werden." 1>&2; rm "$favorites" 2> /dev/null; exit; }
+	arrival=$(cat "$favorites" | head -n 2 | tail -n 1) \
+	      || { echo "Ihr Such-Favorit konnte nicht aus $favorites geladen werden." 1>&2; rm "$favorites" 2> /dev/null; exit; }
     else
+	# Stehen die Daten nicht in den Favoriten, dann werden Fehlermeldungen und die Hilfe
+	# angezeigt.
+	
 	echo "";
-    
 	if [ "$departure" = "nil" ]
 	then
-	    echo "Sie müssen eine Starthaltestelle angeben oder als Favorit speichern (siehe Hilfe)";
+	    echo "Sie müssen eine Starthaltestelle angeben oder als Favorit speichern (siehe Hilfe)" 1>&2;
 	fi
 	
 	if [ "$arrival" = "nil" ]
 	then
-	    echo "Sie müssen eine Zielhaltestelle angeben oder als Favorit speichern (siehe Hilfe)";
+	    echo "Sie müssen eine Zielhaltestelle angeben oder als Favorit speichern (siehe Hilfe)" 1>&2;
 	fi
-	
 	echo "";
+	
 	printHelpMessage;
 	exit;
     fi
@@ -93,9 +110,14 @@ fi
 
 if [ "$favorit" = "true" ]
 then
-    echo $departure > "bfp.fav";
-    echo $arrival >> "bfp.fav";
-    echo "Ihre Suche wurde als Favorit gespeichert.";
+    echo $departure > "$favorites";
+    echo $arrival >> "$favorites";
+    
+    # Ausgabe unterdrücken?
+    if [ "$verbose" = "false" ]
+    then
+	echo "Ihre Suche wurde als Favorit gespeichert.";
+    fi
 fi
 
 # Wenn der User keine Zeit eingegeben hat, dann aktuelle Zeit verwenden.
@@ -114,11 +136,17 @@ time=$(echo -n "$time" | perl -pe 's/([^-_.~A-Za-z0-9])/sprintf("%%%02X", ord($1
 
 # URL konstruieren
 url="http://reiseauskunft.bahn.de/bin/query.exe/dn?revia=yes&existOptimizePrice=1&country=DEU&dbkanal_007=L01_S01_D001_KIN0001_qf-bahn_LZ003&ignoreTypeCheck=yes&S=$departure&REQ0JourneyStopsSID=&REQ0JourneyStopsS0A=7&Z=$arrival&REQ0JourneyStopsZID=&REQ0JourneyStopsZ0A=7&trip-type=single&date=$currentDate&time=$time&timesel=depart&returnTimesel=depart&optimize=0&travelProfile=-1&adult-number=1&children-number=0&infant-number=0&tariffTravellerType.1=E&tariffTravellerReductionClass.1=0&tariffTravellerAge.1=&qf-trav-bday-1=&tariffTravellerReductionClass.2=0&tariffTravellerReductionClass.3=0&tariffTravellerReductionClass.4=0&tariffTravellerReductionClass.5=0&tariffClass=2&start=1&qf.bahn.button.suchen="
-echo "Processing request...";
-echo "";
+
+# Ausgabe unterdrücken?
+if [ "$verbose" = "false" ]
+then
+    echo "Ihre Anfrage wird bearbeitet...";
+    echo "";
+fi
 
 tmpFile="/tmp/fpl.html";		# Datei, in die die heruntergeladene Seite gespeichert wird.
-wget -O $tmpFile "$url" 2> /dev/null;	# Seite von url herunterladen
+wget -O $tmpFile "$url" 2> /dev/null \
+      || { echo "Die benötigten Daten konnten nicht geladen werden." 1>&2; exit; }
 
 # Tabellenkopf ausgeben
 printf "%-40s %-40s %-15s %-15s %-8s %-20s \n" "Startbahnhof" "Zielbahnhof" "Abfahrtszeit" "Ankunftszeit" "Dauer" "Verkehrsmittel";
