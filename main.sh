@@ -24,7 +24,7 @@ function printHelpMessage(){
 	echo -e "\t  \tParameter verwendet."
 	echo -e "\t-r\tLöscht die Favorit-Parameter, sodass beim Start wieder <Starthaltestelle> und";
 	echo -e "\t  \t<Zielhaltestelle> angegeben werden müssen.";
-	echo -e "\t-v\tUnterdrückt Status-Ausgaben auf die Standardausgabe. So können die Busdaten leichter";
+	echo -e "\t-q\tUnterdrückt Status-Ausgaben auf die Standardausgabe. So können die Busdaten leichter";
 	echo -e "\t  \tin eine Datei umgeleitet werden.";
 	echo "";
 }
@@ -36,10 +36,10 @@ favorites="bfp.fav";
 departure="nil";
 arrival="nil";
 favorit="false";
-verbose="false";
+quite="false";
 
 # Benutzereingaben abfragen
-while getopts hs:z:t:frv input
+while getopts hs:z:t:frq input
 do
 	case $input in
 		
@@ -66,7 +66,7 @@ do
 			exit;;
 		
 		# Ausgaben auf die Standardausgabe sollen unterdrückt werden
-		v)	verbose="true";;
+		q)	quite="true";;
 		
 		# sonst Hilfenachricht anzeigen und exit
 		\?) 	printHelpMessage;
@@ -114,7 +114,7 @@ then
     echo $arrival >> "$favorites";
     
     # Ausgabe unterdrücken?
-    if [ "$verbose" = "false" ]
+    if [ "$quite" = "false" ]
     then
 	echo "Ihre Suche wurde als Favorit gespeichert.";
     fi
@@ -138,7 +138,7 @@ time=$(echo -n "$time" | perl -pe 's/([^-_.~A-Za-z0-9])/sprintf("%%%02X", ord($1
 url="http://reiseauskunft.bahn.de/bin/query.exe/dn?revia=yes&existOptimizePrice=1&country=DEU&dbkanal_007=L01_S01_D001_KIN0001_qf-bahn_LZ003&ignoreTypeCheck=yes&S=$departure&REQ0JourneyStopsSID=&REQ0JourneyStopsS0A=7&Z=$arrival&REQ0JourneyStopsZID=&REQ0JourneyStopsZ0A=7&trip-type=single&date=$currentDate&time=$time&timesel=depart&returnTimesel=depart&optimize=0&travelProfile=-1&adult-number=1&children-number=0&infant-number=0&tariffTravellerType.1=E&tariffTravellerReductionClass.1=0&tariffTravellerAge.1=&qf-trav-bday-1=&tariffTravellerReductionClass.2=0&tariffTravellerReductionClass.3=0&tariffTravellerReductionClass.4=0&tariffTravellerReductionClass.5=0&tariffClass=2&start=1&qf.bahn.button.suchen="
 
 # Ausgabe unterdrücken?
-if [ "$verbose" = "false" ]
+if [ "$quite" = "false" ]
 then
     echo "Ihre Anfrage wird bearbeitet...";
     echo "";
