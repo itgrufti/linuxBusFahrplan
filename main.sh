@@ -30,7 +30,7 @@ function printHelpMessage(){
 }
 
 # Favoriten-Datei
-favorites="~/.bfp.fav";
+favorites="$HOME/bfp.fav";
 
 # Werte vorbelegen, um zu testen, ob der Benutzer etwas eingeben hat
 departure="nil";
