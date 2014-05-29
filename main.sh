@@ -2,7 +2,7 @@
 
 # Busfahrplan-Shell-Script von Wolfram Reinke und Nils Rohde
 # Emails:	WolframReinke@web.de
-#		nils.rohde@core-control.de 
+#			nils.rohde@core-control.de 
 
 # Diese Funktion schreibt die Hilfenachricht auf die Ausgabe
 function printHelpMessage(){
@@ -198,12 +198,15 @@ do
 	let timeGet=$timeGet+1;
 	
 	# Die grade geladene Reisemöglichkeit ausgeben
-	printf "%-40s %-40s %-15s %-15s %-8s %-20s" "$startBhf" "$zielBhf" $timeAb $timeAn $duration $provider;
+	printf "%-40s %-40s %-15s %-15s %-8s %-20s" "$startBhf" "$zielBhf" "$timeAb" "$timeAn" "$duration" "$provider";
 	echo "";
 done
 
 # Leerzeile
 echo "";
+
+# Temporäre Datei löschen
+rm $tmpFile;
 
 
 
