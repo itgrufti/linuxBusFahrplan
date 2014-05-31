@@ -160,8 +160,9 @@ timeGet=1;		# Die DB-Seite speichert An- und Ab-Zeit beide unter einem <td class
 for (( i=1; i<=$anzahlDurchlaeufe; i++ ))
 do
 	# Starthaltestelle, Zielhaltestelle, Dauer und Anbieter aus der HTML-Seite greppen
-	startBhf=$(grep -Pzio '<div class="resultDep">\n(.*?)\n</div>' $tmpFile | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | head -n $i | tail -n 1);
-	zielBhf=$(grep -Pzio '<td class="station stationDest pointer".*?>\n(.*?)\n</td>' $tmpFile | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | head -n $i | tail -n 1);
+	#startBhf=$(grep -Pzio '<div class="resultDep">\n(.*?)\n</div>' $tmpFile | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | head -n $i | tail -n 1);
+	startBhf=$(grep -Pzio '(?<=p">\n).*?(?=\n)' $tmpFile | head -n $i | tail -n 1);
+	zielBhf=$(grep -Pzio 'ter".*?>\n.*?\n</' $tmpFile | grep -Pzio '(?<=\n).*?(?=\n<)' | head -n $i | tail -n 1);
 	duration=$(grep -Pzio '<td class="duration lastrow".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '(?<=(>|\n))(.*?)(?=(\n|<))' | head -n $i | tail -n 1);
 	provider=$(grep -Pzio '<td class="products lastrow".*?>\n?(.*?)\n?</td>' $tmpFile | grep -Pzio '(?<=(>|\n))(.*?)(?=(\n|<))' | head -n $i | tail -n 1);
 	
@@ -206,7 +207,7 @@ done
 echo "";
 
 # Temporäre Datei löschen
-rm $tmpFile;
+#rm $tmpFile;
 
 
 
