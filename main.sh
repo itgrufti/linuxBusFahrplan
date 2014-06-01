@@ -104,11 +104,14 @@ fi
 
 # Zeigt dem Benutzer die gewählte Zeit noch einmal an, und teilt ihm mit,
 # ob es die Ankunfts- oder die Abfahrtszeit ist.
-if [ "$MODE" = "depart" -a "$SILENT" = "false" ]
+if [ "$SILENT" = "false" ]
 then
-	echo "Abfahrtszeit: $TIME"
-else
-	echo "Ankunftszeit: $TIME"
+	if [ "$MODE" = "depart" ]
+	then
+		echo "Abfahrtszeit: $TIME"
+	else
+		echo "Ankunftszeit: $TIME"
+	fi
 fi
 
 # Hat der Benutzer Start und Ziel angegeben?
