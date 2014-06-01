@@ -4,14 +4,12 @@
 # Emails:	WolframReinke@web.de
 #			nils.rohde@core-control.de 
 
-#After hours of serious consideration, I've decided not to use a SQLite Database for our script. The expected gain in functionality is out of proportion to the striking loss of free time.
-
 # Diese Funktion schreibt die Hilfenachricht auf die Ausgabe
 function printHelpMessage(){
 	echo "";
 	echo "Busfahrplan-Script von Wolfram Reinke und Nils Rohde";
 	echo "Benutzung:";
-	echo -e "\tbfp.sh -s <Starthaltestelle> -z <Zielhaltestelle> [-t <Abfahrtszeit>] [-f] [-r] [-v]";
+	echo -e "\tbfp.sh -s <Starthaltestelle> -z <Zielhaltestelle> [-t <Abfahrtszeit>] [-f <Name>] [-l <Name>] [-r] [-v]";
 	echo "";
 	echo "Parameter:";
 	echo -e "\t-s\tDie Starthaltestelle der Suche. Bitte geben Sie die Starthaltestelle in";
@@ -21,9 +19,9 @@ function printHelpMessage(){
 	echo -e "\t-t\tDie Abfahrtszeit. Wenn keine Zeit angegeben wird, wird die aktuelle Zeit verwendet.";
 	echo -e "\t  \tFormat: hh:mm.";
 	echo -e "\t-h\tZeigt diese Hilfenachricht.";
-	echo -e "\t-f\tDie Werte für <Starthaltestelle> und <Zielhaltestelle> werden als Favorit gespeichert.";
-	echo -e "\t  \tWenn bei einer späteren Suche diese Parameter wegelassen werden, werden die Favorit-";
-	echo -e "\t  \tParameter verwendet."
+	echo -e "\t-f\tDie Werte für <Starthaltestelle> und <Zielhaltestelle> werden als Favorit unter dem";
+	echo -e "\t  \tgegebenen <Namen> gespeichert.";
+	echo -e "\t-l\tLädt Starthaltestelle und Zielhaltestelle mit dem gegebenen <Namen> aus den Favoriten.";
 	echo -e "\t-r\tLöscht die Favorit-Parameter, sodass beim Start wieder <Starthaltestelle> und";
 	echo -e "\t  \t<Zielhaltestelle> angegeben werden müssen.";
 	echo -e "\t-q\tUnterdrückt Status-Ausgaben auf die Standardausgabe. So können die Busdaten leichter";
@@ -67,8 +65,8 @@ do
 		
 		# Favorit resetten
 		r)	rm "$favorites" 2> /dev/null \
-			    && echo -e "Ihr Such-Favorit wurde gelöscht.\n" \
-			    || echo -e "Ihr Such-Favorit war bereits gelöscht.\n" ;
+			    && echo -e "Ihre Such-Favoriten wurde gelöscht.\n" \
+			    || echo -e "Ihre Such-Favoriten war bereits gelöscht.\n" ;
 			exit;;
 		
 		# Ausgaben auf die Standardausgabe sollen unterdrückt werden
@@ -81,20 +79,11 @@ do
 	esac
 done
 
-# Hat der Benutzer Start und Ziel angegeben?
 if [ "$load" != "nil" ]
 then
-	
-    # Wenn nicht, dann wird in den Favoriten nach den benötigten Daten geschaut.
+
     if [ -e "$favorites" ] 
     then
-		# Wenn beim laden der Favoriten etwas daneben geht, wird die Datei gelöscht
-		# und der Benutzer über den Fehler informiert.
-		#departure=$(cat "$favorites" | head -n 1) \
-		#      || { echo "Ihr Such-Favorit konnte nicht aus $favorites geladen werden." 1>&2; rm "$favorites" 2> /dev/null; exit; }
-		#arrival=$(cat "$favorites" | head -n 2 | tail -n 1) \
-		#      || { echo "Ihr Such-Favorit konnte nicht aus $favorites geladen werden." 1>&2; rm "$favorites" 2> /dev/null; exit; }
-    
     	entries="|$(sqlite3 "$favorites" "SELECT start, dest FROM favorites WHERE name='$load';")|";
     	if [ "$entries" = "||" ]
     	then
@@ -105,9 +94,7 @@ then
  		departure=$(echo "$entries" | grep -Pio '.*?(?=\|)' | head -n1);
  		arrival=$(echo "$entries" | grep -Pio '.*?(?=\|)' | tail -n1);
     else
-		# Stehen die Daten nicht in den Favoriten, dann werden Fehlermeldungen und die Hilfe
-		# angezeigt.
-	
+
 		echo "";
 		if [ "$departure" = "nil" ]
 		then
@@ -126,7 +113,8 @@ then
 else
 	if ([ "$arrival" = "nil" ] || [ "$departure" = "nil" ])
 	then
-		echo "Sie müssen Start- und Zielhaltestelle angeben, oder sie aus den Favoriten laden." 1>&2;
+		echo -e "Sie müssen Start- und Zielhaltestelle angeben, oder sie aus den Favoriten laden.\n" 1>&2;
+		printHelpMessage;
 		exit;
 	fi
 fi
@@ -140,6 +128,7 @@ then
 	
     sqlite3 "$favorites" "INSERT INTO favorites (name, start, dest) VALUES ('$favorit', '$departure', '$arrival');" 2> /dev/null \
     	|| { echo "Dieser Favoriten-Name existiert bereits." 1>&2; exit; }
+    
     # Ausgabe unterdrücken?
     if [ "$quite" = "false" ]
     then
