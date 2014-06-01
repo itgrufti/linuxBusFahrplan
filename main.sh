@@ -178,11 +178,11 @@ HTML_FILE="/tmp/fpl.html"		# Datei, in die die heruntergeladene Seite gespeicher
 wget -O "$HTML_FILE" "$URL" 2> /dev/null \
       || { echo "Die benötigten Daten konnten nicht geladen werden." 1>&2; exit; }
       
-#if [ -z "$(grep -Pzio '(?<=<div class=\"resultDep\">\n)(.*?)(?=\n</div>)' $HTML_FILE)" ]
-#then
-#	echo "reiseauskunft.bahn.de konnte Ihre Anfrage nicht bearbeiten." 1>&2
-#	exit
-#fi
+if [ -z "$(grep -Pzio '(?<=<div class=\"resultDep\">\n)(.*?)(?=\n</div>)' $HTML_FILE)" ]
+then
+	echo -e "reiseauskunft.bahn.de konnte Ihre Anfrage nicht bearbeiten.\n" 1>&2
+	exit
+fi
 
 # Tabellenkopf ausgeben
 printf "%-40s %-40s %-15s %-15s %-8s %-20s \n" "Startbahnhof" "Zielbahnhof" "Abfahrtszeit" "Ankunftszeit" "Dauer" "Verkehrsmittel"
@@ -253,7 +253,7 @@ done
 
 # Leerzeile ausgeben und temporäre Datei wieder löschen
 echo ""
-#rm $HTML_FILE
+rm $HTML_FILE
 
 
 
