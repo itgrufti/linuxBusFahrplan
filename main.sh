@@ -4,6 +4,8 @@
 # Emails:	WolframReinke@web.de
 #			nils.rohde@core-control.de 
 
+#After hours of serious consideration, I've decided not to use a SQLite Database for our script. The expected gain in functionality is out of proportion to the striking loss of free time.
+
 # Diese Funktion schreibt die Hilfenachricht auf die Ausgabe
 function printHelpMessage(){
 	echo "";
@@ -30,16 +32,17 @@ function printHelpMessage(){
 }
 
 # Favoriten-Datei
-favorites="$HOME/.bfp.fav";
+favorites="$HOME/.bfp_favs.db";
 
 # Werte vorbelegen, um zu testen, ob der Benutzer etwas eingeben hat
 departure="nil";
 arrival="nil";
-favorit="false";
+load="nil";
+favorit="nil";
 quite="false";
 
 # Benutzereingaben abfragen
-while getopts hs:z:t:frq input
+while getopts hs:z:t:f:l:rq input
 do
 	case $input in
 		
@@ -57,7 +60,10 @@ do
 		t)	time=$OPTARG;;
 		
 		# Benutzer will die Eingabe als favorit speichern
-		f)	favorit="true";;
+		f)	favorit=$OPTARG;;
+		
+		# Benutzer möchte einen Favoriten laden
+		l)	load=$OPTARG;;
 		
 		# Favorit resetten
 		r)	rm "$favorites" 2> /dev/null \
@@ -76,47 +82,68 @@ do
 done
 
 # Hat der Benutzer Start und Ziel angegeben?
-if ([ "$departure" = "nil" ] || [ "$arrival" = "nil" ])
+if [ "$load" != "nil" ]
 then
+	
     # Wenn nicht, dann wird in den Favoriten nach den benötigten Daten geschaut.
     if [ -e "$favorites" ] 
     then
-	# Wenn beim laden der Favoriten etwas daneben geht, wird die Datei gelöscht
-	# und der Benutzer über den Fehler informiert.
-	departure=$(cat "$favorites" | head -n 1) \
-	      || { echo "Ihr Such-Favorit konnte nicht aus $favorites geladen werden." 1>&2; rm "$favorites" 2> /dev/null; exit; }
-	arrival=$(cat "$favorites" | head -n 2 | tail -n 1) \
-	      || { echo "Ihr Such-Favorit konnte nicht aus $favorites geladen werden." 1>&2; rm "$favorites" 2> /dev/null; exit; }
+		# Wenn beim laden der Favoriten etwas daneben geht, wird die Datei gelöscht
+		# und der Benutzer über den Fehler informiert.
+		#departure=$(cat "$favorites" | head -n 1) \
+		#      || { echo "Ihr Such-Favorit konnte nicht aus $favorites geladen werden." 1>&2; rm "$favorites" 2> /dev/null; exit; }
+		#arrival=$(cat "$favorites" | head -n 2 | tail -n 1) \
+		#      || { echo "Ihr Such-Favorit konnte nicht aus $favorites geladen werden." 1>&2; rm "$favorites" 2> /dev/null; exit; }
+    
+    	entries="|$(sqlite3 "$favorites" "SELECT start, dest FROM favorites WHERE name='$load';")|";
+    	if [ "$entries" = "||" ]
+    	then
+    		echo -e "Dieser Favorit existert nicht.\n" 1>&2;
+    		exit;
+    	fi
+    	
+ 		departure=$(echo "$entries" | grep -Pio '.*?(?=\|)' | head -n1);
+ 		arrival=$(echo "$entries" | grep -Pio '.*?(?=\|)' | tail -n1);
     else
-	# Stehen die Daten nicht in den Favoriten, dann werden Fehlermeldungen und die Hilfe
-	# angezeigt.
+		# Stehen die Daten nicht in den Favoriten, dann werden Fehlermeldungen und die Hilfe
+		# angezeigt.
 	
-	echo "";
-	if [ "$departure" = "nil" ]
-	then
-	    echo "Sie müssen eine Starthaltestelle angeben oder als Favorit speichern (siehe Hilfe)" 1>&2;
-	fi
+		echo "";
+		if [ "$departure" = "nil" ]
+		then
+	   		echo "Sie müssen eine Starthaltestelle angeben oder als Favorit speichern (siehe Hilfe)" 1>&2;
+		fi
 	
-	if [ "$arrival" = "nil" ]
-	then
-	    echo "Sie müssen eine Zielhaltestelle angeben oder als Favorit speichern (siehe Hilfe)" 1>&2;
-	fi
-	echo "";
+		if [ "$arrival" = "nil" ]
+		then
+	    	echo "Sie müssen eine Zielhaltestelle angeben oder als Favorit speichern (siehe Hilfe)" 1>&2;
+		fi
+		echo "";
 	
-	printHelpMessage;
-	exit;
+		printHelpMessage;
+		exit;
     fi
+else
+	if ([ "$arrival" = "nil" ] || [ "$departure" = "nil" ])
+	then
+		echo "Sie müssen Start- und Zielhaltestelle angeben, oder sie aus den Favoriten laden." 1>&2;
+		exit;
+	fi
 fi
 
-if [ "$favorit" = "true" ]
+if [ "$favorit" != "nil" ]
 then
-    echo $departure > "$favorites";
-    echo $arrival >> "$favorites";
-    
+	if [ ! -e "$favorites" ]
+	then
+		sqlite3 "$favorites" "CREATE TABLE favorites (name TEXT PRIMARY KEY, start TEXT, dest TEXT);";
+	fi
+	
+    sqlite3 "$favorites" "INSERT INTO favorites (name, start, dest) VALUES ('$favorit', '$departure', '$arrival');" 2> /dev/null \
+    	|| { echo "Dieser Favoriten-Name existiert bereits." 1>&2; exit; }
     # Ausgabe unterdrücken?
     if [ "$quite" = "false" ]
     then
-	echo "Ihre Suche wurde als Favorit gespeichert.";
+		echo "Ihre Suche wurde als Favorit gespeichert.";
     fi
 fi
 
