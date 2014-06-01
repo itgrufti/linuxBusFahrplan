@@ -30,7 +30,7 @@ function printHelpMessage
 	echo -e "\t  \tdieser Option ist -a. Wird keine dieser Optionen angegeben, wird -d gewählt."
 	echo -e "\t-a\tLegt fest, dass die gegebene Zeit die gewünschte Ankunftszeit ist. Das Gegenteil "
 	echo -e "\t  \tdieser Option ist -d. Wird keine dieser Optionen angegeben, wird -d gewählt."
-	echo -e "\t-h\tZeigt diese Hilfenachricht.";
+	echo -e "\t-h\tZeigt diese Hilfenachricht."
 	echo -e "\t-f\tDie Werte für <Starthaltestelle> und <Zielhaltestelle> werden als Favorit gespeichert."
 	echo -e "\t  \tWenn bei einer späteren Suche diese Parameter wegelassen werden, werden die Favorit-"
 	echo -e "\t  \tParameter verwendet."
@@ -207,13 +207,13 @@ do
 	#		Option jedes mal die ganze Datei zurückgegeben werden.
 
 	# Starthaltestelle, Zielhaltestelle, Dauer und Anbieter aus der HTML-Seite greppen
-	STATION_START=$(grep -Pzio '<div class="resultDep">\n(.*?)\n</div>' $HTML_FILE | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | index $i)
-	STATION_DEST=$(grep -Pzio '<td class="station stationDest pointer".*?>\n(.*?)\n</td>' $HTML_FILE | grep -Pzio '(?<=>\n)(.*?)(?=\n<)' | index $i)
-	DURATION=$(grep -Pzio '<td class="duration lastrow".*?>\n?(.*?)\n?</td>' $HTML_FILE | grep -Pzio '(?<=(>|\n))(.*?)(?=(\n|<))' | index $i)
-	PROVIDER=$(grep -Pzio '<td class="products lastrow".*?>\n?(.*?)\n?</td>' $HTML_FILE | grep -Pzio '(?<=(>|\n))(.*?)(?=(\n|<))' | index $i)
+	STATION_START=$(grep -Pzio '(?<=p">\n).+?(?=\n)' $HTML_FILE | index $i);
+	STATION_DEST=$(grep -Pzio 'ter".*?>\n\K.+?(?=\n</)' $HTML_FILE | index $i);
+	DURATION=$(grep -Pzio '2">\n?\K\d+:\d+(?=\n?<)' $HTML_FILE | index $i);
+	PROVIDER=$(grep -Pzio 'lastrow".*?>\n?\K[A-Z, ]+?(?=\n?<)' $HTML_FILE | index $i);
 	
 	# Die Abfahrtszeit greppen
-	TIME_DEPARTURE=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?.*?</td>' $HTML_FILE | grep -Pzio '\d{1,2}\:\d{1,2}' | index $TIME_INDEX)
+	TIME_DEPARTURE=$(grep -Pzio 'e".*?>\n?\K\d+:\d+(?=\n?.*?<)' $HTML_FILE | index $TIME_INDEX);
 	
 	# Auf der DB-Seite werden auch die Verspätungen angezeigt. Diese fangen mit + oder - an und
 	# werden hier ausgefiltert
@@ -222,23 +222,23 @@ do
 	
 	  # Zeit neu laden, da sonst die Verspätungen statt der Zeit ausgegeben würde. Der nächste Treffer von grep ist
 	  # garantiert keine Verspätungsangabe mehr, die kommen immer abwechselnd
-	  let TIME_INDEX=$TIME_INDEX+1
-	  TIME_DEPARTURE=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?.*?</td>' $HTML_FILE | grep -Pzio '\d{1,2}\:\d{1,2}' | index $TIME_INDEX)
+	  let TIME_INDEX=$TIME_INDEX+1;	
+	  TIME_DEPARTURE=$(grep -Pzio 'e".*?>\n?\K\d+:\d+(?=\n?.*?<)' $HTML_FILE | index $TIME_INDEX);
 	fi
 	
 	# Zähler hochzählen für die Ankunftszeit
 	let TIME_INDEX=$TIME_INDEX+1
 	
 	# Die Ankunftszeit greppen
-	TIME_ARRIVAL=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?.*?</td>' $HTML_FILE | grep -Pzio '\d{1,2}\:\d{1,2}' | index $TIME_INDEX)
+	TIME_ARRIVAL=$(grep -Pzio 'e".*?>\n?\K\d+:\d+(?=\n?.*?<)' $HTML_FILE | index $TIME_INDEX);
 	
 	# Auf der DB-Seite werden auch die Verspätungen angezeigt. Diese fangen mit + oder - an und
 	# werden hier ausgefiltert
 	if ([ ${TIME_ARRIVAL:0:1} = "+" ] || [ ${TIME_ARRIVAL:0:1} = "-" ])
 	then
 	  # Und wieder die Zeit neu laden.
-	  let TIME_INDEX=$TIME_INDEX+1
-	  TIME_ARRIVAL=$(grep -Pzio '<td class="time".*?>\n?(.*?)\n?.*?</td>' $HTML_FILE | grep -Pzio '\d{1,2}\:\d{1,2}' | index $TIME_INDEX)				
+	  let TIME_INDEX=$TIME_INDEX+1;
+	  TIME_ARRIVAL=$(grep -Pzio 'e".*?>\n?\K\d+:\d+(?=\n?.*?<)' $HTML_FILE | index  $TIME_INDEX);				
 	fi
 	
 	# Zähler für den nächsten Schleifendurchlauf hochzählen
